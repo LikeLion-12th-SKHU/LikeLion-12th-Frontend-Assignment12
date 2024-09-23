@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useTabs } from "./hooks/useTabs";
-import { useFadeIn } from "./hooks/useFadeIn";
 import useDebounce from "./hooks/useDebounce";
 import {
   Container,
@@ -12,6 +11,7 @@ import {
   TabsContainer,
   Wrapper,
 } from "./MyPageStyles";
+import FadeIn from "./hooks/FadeIn";
 
 const hobbies = [
   {
@@ -31,24 +31,19 @@ const hobbies = [
 function MyPage() {
   const [query, setQuery] = useState(""); // 사용자의 입력값을 저장
   const debouncedQuery = useDebounce(query, 500); // 검색어를 디바운스해 500ms 후에 업데이트
-  const [filteredHobbies, setFilteredHobbies] = useState(hobbies); // 필터링된 목록 상태
-  const { currentItem, changeItem } = useTabs(0, filteredHobbies); // 현재 탭과 탭 변경 함수를 반환하는 useTabs
-  const fadeInProps = useFadeIn(1); // 애니메이션 효과를 위한 속성 설정
+  const { currentItem, changeItem } = useTabs(0, hobbies); // 현재 탭과 탭 변경 함수를 반환하는 useTabs
+  const [fadeKey, setFadeKey] = useState(0); // fade 키를 관리할 상태 변수
 
-  // 검색어가 변경될 때마다 실행
-  useEffect(() => {
-    // 검색어가 존재하면 필터링, 아닐 경우 전체 탭 표시
-    const filtered = debouncedQuery
-      ? hobbies.filter((hobby) =>
-          hobby.tab.toLowerCase().includes(debouncedQuery.toLowerCase())
-        )
-      : hobbies;
+  // 탭 클릭 핸들러
+  const handleTabClick = (index) => {
+    changeItem(index); // 선택한 탭으로 변경
+    setFadeKey((prevKey) => prevKey + 1); // fade 애니메이션에 키를 업데이트
+  };
 
-    setFilteredHobbies(filtered); // 필터링된 취미 목록 업데이트
-
-    // 필터링된 결과가 있을 경우 첫 번째 탭으로 초기화
-    if (filtered.length > 0) changeItem(0);
-  }, [debouncedQuery, changeItem]);
+  // 입력한 검색어에 따라 필터링된 취미 목록
+  const filteredHobbies = hobbies.filter((section) =>
+    section.tab.toLowerCase().includes(debouncedQuery.toLowerCase())
+  );
 
   return (
     <Container>
@@ -57,23 +52,34 @@ function MyPage() {
         type="text"
         placeholder="Search for a hobby"
         value={query}
-        onChange={(e) => setQuery(e.target.value)} // 입력값이 변경될 때 query 상태 업데이트
+        onChange={(e) => setQuery(e.target.value)}
       />
       <TabsContainer>
-        {/* 필터링된 취미 목록으로 탭 버튼 생성 */}
-        {filteredHobbies.map((hobby, index) => (
-          <Button key={index} onClick={() => changeItem(index)}>
-            {hobby.tab}
-          </Button>
-        ))}
+        {filteredHobbies.map(
+          (
+            hobby,
+            index // 필터링된 취미 목록을 탭으로 표시
+          ) => (
+            <Button
+              key={index}
+              onClick={
+                () =>
+                  handleTabClick(hobbies.findIndex((h) => h.tab === hobby.tab)) // 클릭한 탭을 찾아 핸들러 호출
+              }
+            >
+              {hobby.tab}
+            </Button>
+          )
+        )}
       </TabsContainer>
       <Wrapper>
-        <Content ref={fadeInProps.ref} style={fadeInProps.style}>
-          {/* 필터링된 취미가 있을 경우 현재 탭의 내용 표시, 없으면 '결과 없음' 표시*/}
+        <Content key={fadeKey}>
+          {" "}
+          {/* fade 애니메이션을 위한 key */}
           {filteredHobbies.length > 0 ? (
-            currentItem.content
+            <FadeIn content={currentItem.content} /> // 클릭된 탭의 content를 FadeIn으로 표시
           ) : (
-            <NoResults>결과 없음</NoResults>
+            <NoResults>결과 없음</NoResults> // 필터링된 결과가 없으면 '결과 없음' 표시
           )}
         </Content>
       </Wrapper>
