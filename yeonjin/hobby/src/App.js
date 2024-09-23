@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import useTabs from './hooks/useTabs';
 import useFadeIn from './hooks/useFadeIn';
 import useDebounce from './hooks/useDebounce';
+import './App.css'
+
 const hobbies = [
   {
     name: '웹툰보기',
@@ -28,9 +30,9 @@ const hobbies = [
 
 function App() {
   const { currentItem, changeItem } = useTabs(0, hobbies);
-  const fadeIn = useFadeIn(1, 0);
+  const fadeIn = useFadeIn(1, 2);
   const [search, setSearch] = useState('');
-  const debouncedSearch = useDebounce(search, 500);
+  const debouncedSearch = useDebounce(search, 400);
 
   const handleSearch = (event) => {
     setSearch(event.target.value);
