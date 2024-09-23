@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTabs } from "./hooks/useTabs";
 import useDebounce from "./hooks/useDebounce";
@@ -22,6 +22,13 @@ function Hobby() {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const { currentItem, changeItem } = useTabs(1, content);
+  const [fadeKey, setFadeKey] = useState(0); // 애니메이션 트리거용 상태
+
+  // 탭이 변경될 때마다 fadeKey를 업데이트하여 강제 재렌더링
+  const handleTabClick = (index) => {
+    changeItem(index);
+    setFadeKey((prevKey) => prevKey + 1); // fadeKey 증가
+  };
 
   const filteredContent = content.filter((section) =>
     section.tab.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
@@ -44,7 +51,7 @@ function Hobby() {
           filteredContent.map((section, index) => (
             <button
               key={index}
-              onClick={() => changeItem(index)}
+              onClick={() => handleTabClick(index)}
               style={
                 index ===
                 filteredContent.findIndex(
@@ -60,7 +67,10 @@ function Hobby() {
         )}
       </div>
       {filteredContent.length > 0 && (
-        <div style={contentStyle}>{currentItem.content}</div>
+        <ContentWithFade
+          content={currentItem.content}
+          key={fadeKey} // fadeKey를 key로 사용하여 매번 애니메이션 재실행
+        />
       )}
       <Link to="/calendar" style={calendarLinkStyle}>
         캘린더 꾸미기
@@ -69,8 +79,31 @@ function Hobby() {
   );
 }
 
+function ContentWithFade({ content }) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(false); // 콘텐츠가 변경될 때 보이지 않게 설정
+    const timeout = setTimeout(() => setIsVisible(true), 10); // 약간의 지연 후에 보이도록 설정
+    return () => clearTimeout(timeout); // 클린업
+  }, [content]);
+
+  return (
+    <div
+      style={{
+        ...contentStyle,
+        opacity: isVisible ? 1 : 0,
+        transition: "opacity 0.5s",
+      }}
+    >
+      {content}
+    </div>
+  );
+}
+
 export default Hobby;
 
+// 스타일 관련 코드
 const containerStyle = {
   padding: "20px",
   fontFamily: "Arial, sans-serif",
