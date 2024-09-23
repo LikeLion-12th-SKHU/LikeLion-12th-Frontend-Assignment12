@@ -29,18 +29,28 @@ export const useFadeIn = (duration = 1, delay = 0) => {
 };
 */
 
-import { useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 
-export const useFadeIn = (duration = 1, delay = 0) => {
-  const element = useRef();
+export function useFadeIn(duration = 0.5, delay = 0) {
+  const [isVisible, setIsVisible] = useState(false);
+  const element = useRef(null);
 
   useEffect(() => {
     if (element.current) {
       const { current } = element;
       current.style.transition = `opacity ${duration}s ease-in-out ${delay}s`;
-      current.style.opacity = 1;
+      current.style.opacity = isVisible ? 1 : 0;
     }
-  }, [duration, delay]);
+  }, [isVisible, duration, delay]);
 
-  return { ref: element, style: { opacity: 0 } };
-};
+  const triggerFadeIn = () => {
+    if (element.current) {
+      setIsVisible(false);
+      setTimeout(() => {
+        setIsVisible(true);
+      }, 650);
+    }
+  };
+
+  return { ref: element, triggerFadeIn };
+}

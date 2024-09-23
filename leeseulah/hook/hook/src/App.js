@@ -1,12 +1,16 @@
 import React from "react";
-import "./App.css";
-import TabsWithSearch from "./components/TabsWithSearch";
+import HobbyTabs from "./TabsWithSearch";
+import styled from "styled-components";
+
+const Title = styled.div`
+  text-align: center;
+`;
 
 function App() {
   return (
-    <div className="App">
-      <TabsWithSearch />
-    </div>
+    <h1 className="App">
+      <HobbyTabs />
+    </h1>
   );
 }
 
